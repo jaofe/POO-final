@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import UserContext from "../user-context";
 import classes from "./usuario.module.css";
 
-function Admin() {
+function Cliente() {
   const UserInfo = useContext(UserContext);
   const [isLoading, setIsLoading] = useState(true);
   const [usuario, setUsuario] = useState([]);
@@ -47,17 +47,13 @@ function Admin() {
         <div>{UserInfo.type}</div>
       </div>
       <div className={classes.div}>
-        <div>Horas Trabalhadas:</div>
-        <div>{usuario.horasTrabalhadas}</div>
+        <Link to="/usuario/alterar-senha">Mudar Senha</Link>
       </div>
       <div className={classes.div}>
-        <Link to="usuario/alterar-senha">Mudar Senha</Link>
-      </div>
-      <div className={classes.div}>
-        <Link to="usuario/alterar-contato">Atualizar forma de contato</Link>
+        <Link to="/usuario/alterar-contato">Atualizar forma de contato</Link>
       </div>
     </div>
   );
 }
 
-export default Admin;
+export default Cliente;
