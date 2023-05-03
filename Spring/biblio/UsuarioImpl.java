@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import biblioteca.biblio.command.Command;
+import biblioteca.biblio.command.LoginCommand;
+
 @RestController
 @RequestMapping("/usuario")
 public class UsuarioImpl implements MainController<Usuario> {
@@ -81,18 +84,11 @@ public class UsuarioImpl implements MainController<Usuario> {
 
     @PostMapping("/login")
     public ResponseEntity<?> tentarLogar(@RequestBody Usuario user) {
-
-        Usuario usuario = biblioteca.login(user.getUsername(), user.getSenha());
-
-        if (usuario == null) {
+        Command loginCommand = new LoginCommand(user.getUsername(), user.getSenha());
+        try {
+            return ResponseEntity.ok(loginCommand.execute());
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
-        }
-
-        if (usuario.isCliente()) {
-            return ResponseEntity.ok("user");
-        } else {
-            usuario.baterPontoEntrada();
-            return ResponseEntity.ok("admin");
         }
     }
 

@@ -4,7 +4,7 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
 public class Admin extends Usuario {
-  
+
     private LocalTime horaEntrada;
 
     private long horasTrabalhadas;
@@ -32,6 +32,6 @@ public class Admin extends Usuario {
 
     @Override
     public String printUsuario() {
-        return (getUsername()+ ", Contato: " + getContato() + ", Horas: " + horasTrabalhadas + " (ADMINISTRADOR)");
+        return (getUsername() + ", Contato: " + getContato() + ", Horas: " + horasTrabalhadas + " (ADMINISTRADOR)");
     }
 }

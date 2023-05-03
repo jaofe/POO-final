@@ -4,8 +4,8 @@ import java.util.*;
 
 public class Biblioteca {
 
-    ArrayList<Usuario> usuarios = new ArrayList<>();
-    ArrayList<Livro> livros = new ArrayList<>();
+    public ArrayList<Usuario> usuarios = new ArrayList<>();
+    public ArrayList<Livro> livros = new ArrayList<>();
 
     public Usuario login(String username, String senha) {
         for (Usuario usuario : usuarios) {

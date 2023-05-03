@@ -13,15 +13,6 @@ public class Cliente extends Usuario {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null || obj.getClass() != this.getClass())
-            return false;
-
-        Cliente other = (Cliente) obj;
-        return this.getUsername().equals(other.getUsername());
-    }
-
-    @Override
     public void alugarLivro(Livro livro) {
         this.livrosAlugados.add(livro);
     }
