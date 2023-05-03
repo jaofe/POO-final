@@ -1,19 +1,19 @@
-import { useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect, useRef, useContext } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import classes from "./LivroDetalhes.module.css";
 import UserContext from "../user-context";
+import ListaReviews from "../componentes/ListarReviews";
 import ErrorMessage from "../componentes/ErrorMessage";
 
-function Alugar() {
-  const UserInfo = useContext(UserContext);
+function LivroDetalhes() {
   const { id } = useParams();
+  const UserInfo = useContext(UserContext);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [errorMessage, setErrorMessage] = useState("ok");
   const [livro, setLivro] = useState([]);
-  const tempoInputRef = useRef();
 
   useEffect(() => {
     setIsLoading(true);
@@ -33,18 +33,13 @@ function Alugar() {
       });
   }, []);
 
-  const SubmitHandler = (event) => {
+  const devolver = (event) => {
     event.preventDefault();
-    if (UserInfo.type !== "user") {
-      setErrorMessage("Usuario Inválido");
-      return;
-    }
     const user = {
       username: UserInfo.username,
     };
-    const tempo = tempoInputRef.current.value;
     axios
-      .post(`http://localhost:8080/livro/alugar/${id}/${tempo}`, user)
+      .post(`http://localhost:8080/livro/devolver/${id}`, user)
       .then((response) => {
         console.log(response.data);
         if (response.data === "ok") {
@@ -55,7 +50,27 @@ function Alugar() {
       })
       .catch((error) => {
         console.log(error);
-        setErrorMessage("Data invalida");
+      });
+  };
+
+  const reservar = (event) => {
+    event.preventDefault();
+    const user = {
+      username: UserInfo.username,
+    };
+    axios
+      .post(`http://localhost:8080/livro/reservar/${id}`, user)
+      .then((response) => {
+        console.log(response.data);
+        if (response.data === "ok") {
+          navigate("/", { replace: true });
+        } else {
+          setErrorMessage(response.data);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        setErrorMessage("Usuario inválido");
       });
   };
 
@@ -87,26 +102,40 @@ function Alugar() {
           </div>
           <div className={classes.basicinfo}>
             <div>Ano de lançameto:</div>
-            <div>{livro.autor}</div>
+            <div>{livro.ano}</div>
           </div>
         </div>
       </div>
-      <div>
-        <form className={classes.div} onSubmit={SubmitHandler}>
-          <div className={classes.basicinfo}>
-            <label htmlFor="title">Tempo (dias) :</label>
-            <input type="text" ref={tempoInputRef} />
-            {errorMessage !== "ok" ? (
-              <ErrorMessage>{errorMessage}</ErrorMessage>
-            ) : (
-              <div />
-            )}
-            <button type="submit">Alugar</button>
-          </div>
-        </form>
+      <div className={classes.div}>
+        <div>Sinopse:</div>
+        <div className={classes.sinopse}>{livro.sinopse}</div>
       </div>
+      {errorMessage !== "ok" ? (
+        <ErrorMessage>{errorMessage}</ErrorMessage>
+      ) : (
+        <div />
+      )}
+      <div className={classes.div}>
+        {UserInfo.username === livro.username ? (
+          <button onClick={devolver}>Devolver</button>
+        ) : livro.disponibilidade ? (
+          <Link
+            to={{
+              pathname: `/alugar/${livro.id}`,
+            }}
+          >
+            <button>Alugar</button>
+          </Link>
+        ) : livro.reservabilidade ? (
+          <button onClick={reservar}>Reservar</button>
+        ) : (
+          <div>Livro indisponivel</div>
+        )}
+      </div>
+      <div className={classes.div}>Reviews:</div>
+      <ListaReviews reviews={livro.reviews} />
     </div>
   );
 }
 
-export default Alugar;
+export default LivroDetalhes;
