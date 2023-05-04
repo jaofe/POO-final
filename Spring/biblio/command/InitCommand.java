@@ -3,9 +3,9 @@ package biblioteca.biblio.command;
 import biblioteca.biblio.Livro;
 import biblioteca.biblio.custonExceptions.InvalidCommandException;
 
-public class InitCommand implements Command {
+public class InitCommand implements Command<Void> {
     @Override
-    public String execute() throws InvalidCommandException{
+    public Void execute() throws InvalidCommandException{
         if (biblioteca.livros.size() > 0) {
             throw new InvalidCommandException("Sistema já está iniciado");
         }
@@ -24,6 +24,6 @@ public class InitCommand implements Command {
                 "https://m.media-amazon.com/images/I/517I6z9QK4L._SX357_BO1,204,203,200_.jpg",
                 "Novatec Editora", "2017",
                 "Um guia ilustrado para programadores e outros curiosos. Um algoritmo nada mais é do que um procedimento passo a passo para a resolução de um problema. Os algoritmos que você mais utilizará como um programador já foram descobertos, testados e provados. Se você quer entendê-los, mas se recusa a estudar páginas e mais páginas de provas, este é o livro certo. Este guia cativante e completamente ilustrado torna simples aprender como utilizar os principais algoritmos nos seus programas. O livro Entendendo Algoritmos apresenta uma abordagem agradável para esse tópico essencial da ciência da computação. Nele, você aprenderá como aplicar algoritmos comuns nos problemas de programação enfrentados diariamente. Você começará com tarefas básicas como a ordenação e a pesquisa. Com a prática, você enfrentará problemas mais complexos, como a compressão de dados e a inteligência artificial. Cada exemplo é apresentado em detalhes e inclui diagramas e códigos completos em Python. Ao final deste livro, você terá dominado algoritmos amplamente aplicáveis e saberá quando e onde utilizá-los. O que este livro inclui: a abordagem de algoritmos de pesquisa, ordenação e algoritmos gráficos; mais de 400 imagens com descrições detalhadas; comparações de desempenho entre algoritmos; exemplos de código em Python."));
-        return "ok";
+        return null;
     }
 }

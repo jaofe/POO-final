@@ -3,7 +3,7 @@ package biblioteca.biblio.command;
 import biblioteca.biblio.Usuario;
 import biblioteca.biblio.custonExceptions.InvalidCommandException;
 
-public class LoginCommand implements Command {
+public class LoginCommand implements Command<String> {
     private String username;
     private String senha;
 

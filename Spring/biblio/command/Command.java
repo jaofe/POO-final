@@ -2,8 +2,8 @@ package biblioteca.biblio.command;
 import biblioteca.biblio.Biblioteca;
 import biblioteca.biblio.custonExceptions.InvalidCommandException;
 
-public interface Command {
+public interface Command<T> {
     Biblioteca biblioteca = new Biblioteca();
 
-    public String execute() throws InvalidCommandException;
+    public T execute() throws InvalidCommandException;
 }
