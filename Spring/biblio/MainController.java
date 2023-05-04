@@ -15,7 +15,7 @@ import jakarta.annotation.PostConstruct;
 public interface MainController<T> {
         static Biblioteca biblioteca = new Biblioteca();
 
-        Command initCommand = new InitCommand();
+        Command<Void> initCommand = new InitCommand();
 
         @PostConstruct
         public default void iniciar() {

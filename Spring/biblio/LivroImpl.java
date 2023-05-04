@@ -13,9 +13,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import biblioteca.biblio.command.Command;
+import biblioteca.biblio.command.ListarLiCommand;
+
 @RestController
 @RequestMapping("/livro")
 public class LivroImpl implements MainController<Livro> {
+    
+    Command<ArrayList<Livro>> listarLivrosCommand = new ListarLiCommand();
+
     @Override
     public ResponseEntity<?> cadastro(Livro livro) {
         biblioteca.cadastrarLivro(livro);
@@ -24,7 +30,11 @@ public class LivroImpl implements MainController<Livro> {
 
     @Override
     public ResponseEntity<?> listarObjetos() {
-        return ResponseEntity.ok(biblioteca.livros);
+        try {
+            return ResponseEntity.ok(listarLivrosCommand.execute());
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @Override

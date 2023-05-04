@@ -13,25 +13,37 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import biblioteca.biblio.command.Command;
+import biblioteca.biblio.command.ListarUsCommand;
 import biblioteca.biblio.command.LoginCommand;
+import biblioteca.biblio.custonExceptions.InvalidCommandException;
+import biblioteca.biblio.command.CadAdCommand;
+import biblioteca.biblio.command.CadUsCommand;
 
 @RestController
 @RequestMapping("/usuario")
 public class UsuarioImpl implements MainController<Usuario> {
+    Command<ArrayList<String>> listUsersCommand = new ListarUsCommand();
+
+
     @Override
     public ResponseEntity<?> cadastro(Usuario usuario) {
-        Usuario user = biblioteca.buscarUsuario(usuario.getUsername());
-        if (user == null) {
-            biblioteca.criarUsuario(usuario.getUsername(), usuario.getSenha(), usuario.getContato());
-            return ResponseEntity.ok("ok");
-        } else {
-            return ResponseEntity.ok("nome de usuario já está em uso");
+        Command<String> cadCommand = new CadUsCommand(usuario);
+        try {
+            return ResponseEntity.ok(cadCommand.execute());
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
+
+
     }
 
     @Override
     public ResponseEntity<?> listarObjetos() {
-        return ResponseEntity.ok(biblioteca.listarUsuarios());
+        try {
+            return ResponseEntity.ok(listUsersCommand.execute());
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @Override
@@ -84,7 +96,7 @@ public class UsuarioImpl implements MainController<Usuario> {
 
     @PostMapping("/login")
     public ResponseEntity<?> tentarLogar(@RequestBody Usuario user) {
-        Command loginCommand = new LoginCommand(user.getUsername(), user.getSenha());
+        Command<String> loginCommand = new LoginCommand(user.getUsername(), user.getSenha());
         try {
             return ResponseEntity.ok(loginCommand.execute());
         } catch (Exception e) {
@@ -108,13 +120,14 @@ public class UsuarioImpl implements MainController<Usuario> {
 
     @PostMapping("cadastro-admin")
     public ResponseEntity<?> cadastroAdmin(@RequestBody Usuario usuario) {
-        Usuario user = biblioteca.buscarUsuario(usuario.getUsername());
-        if (user == null) {
-            biblioteca.criarAdmin(usuario.getUsername(), usuario.getSenha(), usuario.getContato());
-            return ResponseEntity.ok("ok");
-        } else {
-            return ResponseEntity.ok("nome de usuario já está em uso");
+        Command<String> cadCommand = new CadAdCommand(usuario);
+        try {
+            return ResponseEntity.ok(cadCommand.execute()); 
+        } catch (InvalidCommandException e) {
+            return ResponseEntity.notFound().build();
         }
+        
+
     }
 
     @GetMapping("/multa/{username}")
