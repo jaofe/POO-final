@@ -1,8 +1,7 @@
 package biblioteca.biblio;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,9 +12,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import biblioteca.biblio.command.Command;
+import biblioteca.biblio.command.GetLivAlugCommand;
+import biblioteca.biblio.command.GetLivDevCommand;
 import biblioteca.biblio.command.ListarUsCommand;
 import biblioteca.biblio.command.LoginCommand;
+import biblioteca.biblio.command.LogoutCommand;
+import biblioteca.biblio.command.MudarContCommand;
+import biblioteca.biblio.command.MudarSenCommand;
+import biblioteca.biblio.command.MultaCommand;
+import biblioteca.biblio.command.UsAtraCommand;
 import biblioteca.biblio.custonExceptions.InvalidCommandException;
+import biblioteca.biblio.command.BuscarUsCommand;
 import biblioteca.biblio.command.CadAdCommand;
 import biblioteca.biblio.command.CadUsCommand;
 
@@ -48,50 +55,43 @@ public class UsuarioImpl implements MainController<Usuario> {
 
     @Override
     public ResponseEntity<?> pegarObjeto(String id) {
-        Usuario usuario = biblioteca.buscarUsuario(id);
-        if (usuario == null) {
+        Command<Usuario> BuscarUs = new BuscarUsCommand(id);
+        try {
+            return ResponseEntity.ok(BuscarUs.execute());
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(usuario);
     }
 
     @Override
     public ResponseEntity<?> atrasados() {
-        ArrayList<String> usuariosAtrasados = new ArrayList<>();
-        for (Usuario usuario : biblioteca.usuarios) {
-            if (usuario.temLivroAtrasado()) {
-                usuariosAtrasados
-                        .add("Usuario: " + usuario.getUsername() + ", forma de contato: " + usuario.getContato() + ".");
-            }
+        Command<ArrayList<String>> UsAtrasados = new UsAtraCommand();
+        try {
+            return ResponseEntity.ok(UsAtrasados.execute());
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(usuariosAtrasados);
     }
 
     @GetMapping("livrosAlugados/{username}")
     public ResponseEntity<?> getLivrosAlugados(@PathVariable String username) {
-        Usuario usuario = biblioteca.buscarUsuario(username);
+        Command<List<Livro>> getLivroAlg = new GetLivAlugCommand(username);
         try {
-            if (!usuario.isCliente()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            return ResponseEntity.ok(usuario.pegarLivrosAlugados());
+            return ResponseEntity.ok(getLivroAlg.execute());
         } catch (Exception e) {
-            return ResponseEntity.ok(usuario.pegarLivrosAlugados());
+            return ResponseEntity.notFound().build();
         }
 
     }
 
     @GetMapping("livrosDevolvidos/{username}")
     public ResponseEntity<?> getLivrosDevolvidos(@PathVariable String username) {
-        Usuario usuario = biblioteca.buscarUsuario(username);
-
-        if (usuario == null || !usuario.isCliente()) {
+        Command<List<Livro>> getLivroDev = new GetLivDevCommand(username);
+        try {
+            return ResponseEntity.ok(getLivroDev.execute());
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
-
-        return ResponseEntity.ok(usuario.pegarLivrosDevolvidos());
-
     }
 
     @PostMapping("/login")
@@ -106,16 +106,12 @@ public class UsuarioImpl implements MainController<Usuario> {
 
     @PostMapping("/logout")
     public ResponseEntity<?> sair(@RequestBody Usuario user) {
-        Usuario usuario = biblioteca.buscarUsuario(user.getUsername());
-
-        if (usuario != null && !usuario.isCliente()) {
-            try {
-                usuario.baterPontoSaida();
-            } catch (NullPointerException e) {
-                return ResponseEntity.ok("error ao computar horas");
-            }
+        Command<String> logoutCommand = new LogoutCommand(user);
+        try {
+            return ResponseEntity.ok(logoutCommand.execute());
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok("ok");
     }
 
     @PostMapping("cadastro-admin")
@@ -132,48 +128,31 @@ public class UsuarioImpl implements MainController<Usuario> {
 
     @GetMapping("/multa/{username}")
     public ResponseEntity<?> multa(@PathVariable String username) {
-        Usuario usuario = biblioteca.buscarUsuario(username);
-        ArrayList<String> multas = new ArrayList<>();
-        if (usuario == null || !usuario.isCliente()) {
+        Command<ArrayList<String>> multaCommand = new MultaCommand(username);
+        try {
+            return ResponseEntity.ok(multaCommand.execute());
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
-
-        ArrayList<Livro> livrosAlugados = usuario.pegarLivrosAlugados();
-        for (Livro livro : livrosAlugados) {
-            if (livro.isAtrasado()) {
-                LocalDate hoje = LocalDate.now();
-                long atraso = ChronoUnit.DAYS.between(livro.getDataDevolucao(), hoje);
-
-                multas.add("Livro: " + livro.getTitulo() + ",id: " + livro.getId() + ", data devolução: "
-                        + livro.getDataDevolucao() + ", multa de R$: " + (5 + atraso * .75) + " .");
-            }
-        }
-        return ResponseEntity.ok(multas);
     }
 
     @PostMapping("/senha/{novaSenha}")
     public ResponseEntity<?> mudarSenha(@PathVariable String novaSenha, @RequestBody Usuario user) {
-        Usuario usuario = biblioteca.login(user.getUsername(), user.getSenha());
-
-        if (usuario == null) {
+        Command<String> mudarsenhCommand = new MudarSenCommand(novaSenha, user);
+        try {
+            return ResponseEntity.ok(mudarsenhCommand.execute());
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
-
-        usuario.alterarSenha(usuario.getSenha(), novaSenha);
-
-        return ResponseEntity.ok("ok");
     }
 
     @PostMapping("/contato/{novoContato}")
     public ResponseEntity<?> mudarContato(@PathVariable String novoContato, @RequestBody Usuario user) {
-        Usuario usuario = biblioteca.login(user.getUsername(), user.getSenha());
-
-        if (usuario == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        usuario.alterarContato(user.getSenha(), novoContato);
-
-        return ResponseEntity.ok("ok");
+       Command<String> mudarcontCommand = new MudarContCommand(novoContato, user);
+       try {
+        return ResponseEntity.ok(mudarcontCommand.execute());
+       } catch (Exception e) {
+        return ResponseEntity.notFound().build();
+       }
     }
 }

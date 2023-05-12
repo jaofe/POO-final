@@ -1,8 +1,7 @@
 package biblioteca.biblio;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
+
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,8 +12,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import biblioteca.biblio.command.AlugLiCommand;
+import biblioteca.biblio.command.AtraCommand;
+import biblioteca.biblio.command.BusLiCommand;
+import biblioteca.biblio.command.BuscaCommand;
+import biblioteca.biblio.command.CadLiCommand;
 import biblioteca.biblio.command.Command;
+import biblioteca.biblio.command.DevAtraCommand;
+import biblioteca.biblio.command.DevCommand;
+import biblioteca.biblio.command.FazerResCommand;
+import biblioteca.biblio.command.FazerRevCommand;
 import biblioteca.biblio.command.ListarLiCommand;
+import biblioteca.biblio.command.RemRevCommand;
 
 @RestController
 @RequestMapping("/livro")
@@ -24,8 +33,12 @@ public class LivroImpl implements MainController<Livro> {
 
     @Override
     public ResponseEntity<?> cadastro(Livro livro) {
-        biblioteca.cadastrarLivro(livro);
-        return ResponseEntity.ok("ok");
+        Command<String> livros = new CadLiCommand(livro);
+        try {
+            return ResponseEntity.ok(livros.execute());
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @Override
@@ -39,51 +52,30 @@ public class LivroImpl implements MainController<Livro> {
 
     @Override
     public ResponseEntity<?> pegarObjeto(String id) {
-        int idint = 1;
+        Command<Livro> livro = new BusLiCommand(id);
         try {
-            idint = Integer.parseInt(id);
-            Livro livro = biblioteca.buscarLivroId(idint);
-            if (livro == null) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(livro);
-        } catch (NumberFormatException e) {
+            return ResponseEntity.ok(livro.execute());
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @Override
     public ResponseEntity<?> atrasados() {
-        ArrayList<String> livrosAtrasados = new ArrayList<>();
-        for (Livro livro : biblioteca.livros) {
-            if (livro.getUsername() != null && livro.isAtrasado()) {
-                Usuario usuario = biblioteca.buscarUsuario(livro.getUsername());
-                livrosAtrasados.add("Livro: " + livro.getTitulo() + ",id: " + livro.getId() + ", data devolução: "
-                        + livro.getDataDevolucao() + ", usuario: " + usuario.getUsername() + ", forma de contato: "
-                        + usuario.getContato() + ".");
-            }
+        Command<ArrayList<String>> Atrasados = new AtraCommand();
+        try {
+            return ResponseEntity.ok(Atrasados.execute());
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(livrosAtrasados);
     }
 
     @PostMapping("/alugar/{id}/{tempo}")
     public ResponseEntity<?> alugarLivro(@PathVariable int id, @PathVariable int tempo, @RequestBody Usuario user) {
 
-        Usuario usuario = biblioteca.buscarUsuario(user.getUsername());
-        Livro livro = biblioteca.buscarLivroId(id);
+        Command<String> Alugar = new AlugLiCommand(id, tempo, user);
         try {
-            if (!usuario.isCliente()) {
-                return ResponseEntity.notFound().build();
-            }
-            if (usuario.temLivroAtrasado()) {
-                return ResponseEntity.ok("Devido a existencia de livros atrasados, esta função está indisponivel!");
-            }
-            if (livro.alugar(user.getUsername(), LocalDate.now().plusDays(tempo))) {
-                usuario.alugarLivro(livro);
-                return ResponseEntity.ok("ok");
-            }
-            return ResponseEntity.ok("Livro indisponivel!");
-
+            return ResponseEntity.ok(Alugar.execute());
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -91,48 +83,21 @@ public class LivroImpl implements MainController<Livro> {
 
     @PostMapping("/devolver/{id}")
     public ResponseEntity<?> devolver(@PathVariable int id, @RequestBody Usuario user) {
-        Usuario usuario = biblioteca.buscarUsuario(user.getUsername());
-        Livro livro = biblioteca.buscarLivroId(id);
-        if (!usuario.pegarLivrosAlugados().contains(livro)){
-            return ResponseEntity.ok("o usuario não esta com este livro");
-        }
-
+        
+        Command<String> Devolver = new DevCommand(user, id);
         try {
-            if (livro.isAtrasado()) {
-                return ResponseEntity.ok("Livro atrasado, por favor vá para a pagina de multas.");
-            }
-
-            if(livro.devolver()) {
-                usuario.devolverLivro(livro);
-                Usuario usuario2 = biblioteca.buscarUsuario(livro.getUsername());
-                if (usuario2 != null) {
-                    usuario2.alugarLivro(livro);
-                }
-            }
+            return ResponseEntity.ok(Devolver.execute());
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
-
-        return ResponseEntity.ok("ok");
     }
 
     @PostMapping("/devolver-atrasado/")
     public ResponseEntity<?> devolverAtrasado(@RequestBody Usuario user) {
-        Usuario usuario = biblioteca.buscarUsuario(user.getUsername());
+        
+        Command<String> DevAtrasado = new DevAtraCommand(user);
         try {
-            List<Livro> livrosAlugados = new ArrayList<>(usuario.pegarLivrosAlugados());
-            for (Livro livro : livrosAlugados) {
-                if (livro.isAtrasado()) {
-                    if(livro.devolver()) {
-                        usuario.devolverLivro(livro);
-                        Usuario usuario2 = biblioteca.buscarUsuario(livro.getUsername());
-                        if (usuario2 != null) {
-                            usuario2.alugarLivro(livro);
-                        }
-                    }
-                }
-            }
-            return ResponseEntity.ok("ok");
+            return ResponseEntity.ok(DevAtrasado.execute());
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -140,18 +105,10 @@ public class LivroImpl implements MainController<Livro> {
 
     @PostMapping("/review/{id}")
     public ResponseEntity<?> fazerReview(@PathVariable int id, @RequestBody Review review) {
-        Usuario usuario = biblioteca.buscarUsuario(review.getReviewerUsername());
-
+        
+        Command<String> FazerReview = new FazerRevCommand(id, review);
         try {
-            for (Livro l : usuario.pegarLivrosDevolvidos()) {
-                if (l.getId() == id) {
-                    Livro livro = biblioteca.buscarLivroId(id);
-                    livro.reviews.add(review);
-                    return ResponseEntity.ok("ok");
-                }
-            }
-
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(FazerReview.execute());
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -159,18 +116,10 @@ public class LivroImpl implements MainController<Livro> {
 
     @PostMapping("/reservar/{id}")
     public ResponseEntity<?> fazerReserva(@PathVariable int id, @RequestBody Usuario user) {
-        Usuario usuario = biblioteca.buscarUsuario(user.getUsername());
-
+        
+        Command<String> FazerReserva = new FazerResCommand(id, user);
         try {
-            if (usuario.temLivroAtrasado()) {
-                return ResponseEntity.ok("Devido a existencia de livros atrasados, esta função está indisponivel!");
-            }
-            Livro livro = biblioteca.buscarLivroId(id);
-            if (livro.reservar(usuario.getUsername())) {
-                usuario.reservarLivro(livro);
-                return ResponseEntity.ok("ok");
-            }
-            return ResponseEntity.ok("Error ao reservar livro");
+            return ResponseEntity.ok(FazerReserva.execute());
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -178,32 +127,21 @@ public class LivroImpl implements MainController<Livro> {
 
     @GetMapping("busca/{search}")
     public ResponseEntity<?> busca(@PathVariable String search) {
-        ArrayList<Livro> livros = new ArrayList<>();
-        for (Livro livro : biblioteca.livros) {
-            if (livro.getTitulo().contains(search)) {
-                livros.add(livro);
-            }
+        
+        Command<ArrayList<Livro>> Busca = new BuscaCommand(search);
+        try {
+            return ResponseEntity.ok(Busca.execute());
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(livros);
     }
 
     @PutMapping("/remover-review/{id}")
     public ResponseEntity<String> removerReview(@PathVariable int id, @RequestBody Usuario user) {
-        Livro livro = biblioteca.buscarLivroId(id);
+        
+        Command<String> Remover = new RemRevCommand(id, user);
         try {
-            int index = -1;
-            for (Review r : livro.reviews) {
-                if (r.getReviewerUsername().equals(user.getUsername())) {
-                    index = livro.reviews.indexOf(r);
-                }
-            }
-            if (index == -1) {
-                return ResponseEntity.notFound().build();
-            }
-
-            livro.reviews.remove(index);
-            System.out.println("Review removida com sucesso.");
-            return ResponseEntity.ok("Review removida com sucesso.");
+            return ResponseEntity.ok(Remover.execute());
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }

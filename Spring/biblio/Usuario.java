@@ -3,30 +3,14 @@ package biblioteca.biblio;
 import java.util.ArrayList;
 
 public class Usuario {
-   private String username;
-   private String senha;
-   private String contato;
+    private String username;
+    private String senha;
+    private String contato;
     
     public Usuario (String username, String senha, String contato) {
         this.username = username;
         this.senha = senha;
         this.contato = contato;
-    }
-
-    public String getUsername() {
-        return username;
-      }
-    
-      public void setUsername(String username) {
-        this.username = username;
-      }
-    
-      public String getSenha() {
-        return senha;
-      }
-    
-      public void setSenha(String senha) {
-        this.senha = senha;
     }
 
     public boolean alterarSenha(String senhaAtual, String novaSenha) {
@@ -49,8 +33,24 @@ public class Usuario {
         return this.senha.equals(senha);
     }
 
+    public String getUsername() {
+        return username;
+    }
+
     public String getContato() {
         return contato;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
     }
 
     public boolean isCliente()
