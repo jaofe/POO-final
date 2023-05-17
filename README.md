@@ -1,3 +1,14 @@
 # Sistema de Gerenciamento de uma Biblioteca Online - Projeto de Programação Orientada a Objetos
 
 O sistema de gerenciamento de bibliotecas visa facilitar a vida de alunos que queiram alugar livros de forma prática e ágil, assim como auxiliar seus administradores em sua gestão. Nele, é possível cadastrar usuários (clientes ou administradores), cadastrar livros e gerenciar os aluguéis, devoluções e dívidas quanto aos mesmos.
+
+intalação spring
+  instalar o maven
+  executar o "comando mvn spring-boot:run" no diretorio da pasta Spring(https://github.com/jaofe/POO-final/tree/main/Spring)
+
+
+intalação interface
+  instalar e criar um projeto no react.
+  instalar as dependecias react-router-dom e axios
+  substituir a pasta src pela pasta src de [react](https://github.com/jaofe/POO-final/tree/main/react)
+  iniciar a aplicação com o comando "npm start"
