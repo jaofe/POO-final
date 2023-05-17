@@ -41,7 +41,7 @@ function CadastroLivro() {
         editora: editoraData,
         ano: anoLanData,
         capaUrl: capaUrlData,
-        sinopseData: sinopseData,
+        sinopse: sinopseData,
       };
 
       axios
