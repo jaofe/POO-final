@@ -13,17 +13,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.annotation.PostConstruct;
 
 public interface MainController<T> {
-        static Biblioteca biblioteca = new Biblioteca();
-
-        Command<Void> initCommand = new InitCommand();
+        public default <commandType> ResponseEntity<?> executeHandler(Command<commandType> command) {
+                try {
+                        commandType result = command.execute();
+                        return ResponseEntity.ok(result);
+                } catch (InvalidCommandException e) {
+                        return ResponseEntity.notFound().build();
+                } catch (Exception e) {
+                        System.out.println("Error inesperado");
+                        return ResponseEntity.notFound().build();
+                }
+        }
 
         @PostConstruct
         public default void iniciar() {
-                try {
-                        initCommand.execute();
-                } catch (InvalidCommandException e) {
-                        System.out.println(e.getMessage());
-                }
+                Command<Void> initCommand = new InitCommand();
+                executeHandler(initCommand);
         }
 
         @PostMapping("/cadastro")
